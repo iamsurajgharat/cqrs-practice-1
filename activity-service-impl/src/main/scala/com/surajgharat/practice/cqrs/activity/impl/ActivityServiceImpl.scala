@@ -9,6 +9,9 @@ import com.surajgharat.practice.cqrs.activity.api.ActivityStatusSucess
 import com.surajgharat.practice.cqrs.activity.api.ActivityStatus
 import com.surajgharat.practice.cqrs.activity.api.ActivityStatusSucess
 import com.surajgharat.practice.cqrs.activity.api.ActivityStatusFailure
+import com.lightbend.lagom.scaladsl.api.transport.PolicyViolation
+import com.lightbend.lagom.scaladsl.api.transport.TransportErrorCode
+import com.lightbend.lagom.scaladsl.api.transport.ExceptionMessage
 
 class ActivityServiceImpl(implicit ec: ExecutionContext)
     extends ActivityService {
@@ -17,7 +20,11 @@ class ActivityServiceImpl(implicit ec: ExecutionContext)
       val valResult = validate(x)
       Future {
         valResult match {
-          case Some(value) => value
+          case Some(value) =>
+            throw new PolicyViolation(
+              TransportErrorCode.BadRequest,
+              new ExceptionMessage("Validation Failed", value.error)
+            )
           case None =>
             val id = uuid
             val updatedActibity = x.activityType match {
