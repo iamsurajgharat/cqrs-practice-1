@@ -13,7 +13,7 @@ trait ActivityService extends Service {
     *
     * @return status of the event whether it got processed successfully or not
     */
-  def processActivity(): ServiceCall[Activity, String]
+  def processActivity(): ServiceCall[Activity, ActivityStatus]
 
   override final def descriptor: Descriptor = {
     import Service._
@@ -27,8 +27,36 @@ trait ActivityService extends Service {
   }
 }
 
-case class Activity(userId: String)
+case class Activity(
+    id: Option[String],
+    userId: String,
+    user2Id: Option[String],
+    activityType: String,
+    feedId: Option[String],
+    commentId: Option[String],
+    content: Option[String]
+)
 
 object Activity {
   implicit val format: Format[Activity] = Json.format[Activity]
+}
+
+sealed trait ActivityStatus
+case class ActivityStatusSucess(activity: Activity) extends ActivityStatus
+case class ActivityStatusFailure(activity: Activity, error: String)
+    extends ActivityStatus
+
+object ActivityStatus {
+  implicit val format: Format[ActivityStatus] =
+    Json.format[ActivityStatus]
+}
+
+object ActivityStatusSucess {
+  implicit val format: Format[ActivityStatusSucess] =
+    Json.format[ActivityStatusSucess]
+}
+
+object ActivityStatusFailure {
+  implicit val format: Format[ActivityStatusFailure] =
+    Json.format[ActivityStatusFailure]
 }
